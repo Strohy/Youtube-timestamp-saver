@@ -5,8 +5,18 @@ function getVideoId(url) {
     if (urlObj.hostname === "youtu.be") {
       return urlObj.pathname.slice(1);
     }
+    
+    // Handle standard watch URLs
     const params = new URLSearchParams(urlObj.search);
-    return params.get("v");
+    const v = params.get("v");
+    if (v) return v;
+
+    // Handle Shorts URLs (/shorts/VIDEO_ID)
+    if (urlObj.pathname.startsWith("/shorts/")) {
+      return urlObj.pathname.split("/")[2];
+    }
+
+    return null;
   } catch (e) {
     return null;
   }
@@ -48,9 +58,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       };
 
       const videoId = getVideoId(window.location.href);
+      const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
 
       const timestamp = {
         videoId: videoId,
+        thumbnailUrl: thumbnailUrl,
         currentTime: currentTime,
         formattedTime: formatTime(currentTime),
         duration: duration,
@@ -75,8 +87,77 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === "showToast") {
     showToast(request.text, request.type);
     sendResponse({ success: true });
+  } else if (request.action === "showCategoryModal") {
+    showCategoryModal(request.categories, (category) => {
+      sendResponse({ success: true, category: category });
+    });
+    return true; // Keep message channel open for async response
   }
 });
+
+// Function to show category selection modal
+function showCategoryModal(categories, callback) {
+  // Remove existing modal if any
+  const existingModal = document.getElementById("yt-timestamp-category-modal");
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Create modal elements
+  const overlay = document.createElement("div");
+  overlay.id = "yt-timestamp-category-modal";
+  overlay.className = "yt-category-modal-overlay";
+
+  const container = document.createElement("div");
+  container.className = "yt-category-modal-container";
+
+  const title = document.createElement("h3");
+  title.textContent = "Select Category";
+  container.appendChild(title);
+
+  const categoryList = document.createElement("div");
+  categoryList.className = "yt-category-list";
+
+  let selectedCategory = "Default";
+
+  categories.forEach((cat) => {
+    const item = document.createElement("div");
+    item.className = "yt-category-item" + (cat === "Default" ? " selected" : "");
+    item.textContent = cat;
+    item.onclick = () => {
+      document.querySelectorAll(".yt-category-item").forEach(i => i.classList.remove("selected"));
+      item.classList.add("selected");
+      selectedCategory = cat;
+    };
+    categoryList.appendChild(item);
+  });
+
+  container.appendChild(categoryList);
+
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "yt-modal-buttons";
+
+  const saveBtn = document.createElement("button");
+  saveBtn.className = "yt-modal-btn save";
+  saveBtn.textContent = "SAVE";
+  saveBtn.onclick = () => {
+    overlay.remove();
+    callback(selectedCategory);
+  };
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "yt-modal-btn cancel";
+  cancelBtn.textContent = "CANCEL";
+  cancelBtn.onclick = () => {
+    overlay.remove();
+  };
+
+  buttonContainer.appendChild(cancelBtn);
+  buttonContainer.appendChild(saveBtn);
+  container.appendChild(buttonContainer);
+  overlay.appendChild(container);
+  document.body.appendChild(overlay);
+}
 
 // Function to show a toast notification on the page
 function showToast(message, type = "success") {

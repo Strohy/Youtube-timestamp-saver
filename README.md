@@ -5,7 +5,7 @@ A lightweight Chrome extension to capture and save timestamps of YouTube videos 
 ## Features
 
 - **One-Click Save:** Instantly save the current video time, title, and URL.
-- **Keyboard Shortcut:** Press **Alt + S** (Windows/Linux) or **Option + S** (Mac) to save a timestamp without opening any menus.
+- **Keyboard Shortcut:** Press **Alt + X** (Windows/Linux) or **Option + X** (Mac) to save a timestamp without opening any menus.
 - **Visual Feedback:** A non-intrusive "Saved!" notification appears directly on the YouTube player.
 - **Manage History:** View your saved timestamps in a clean list, delete old entries, or click a link to jump back to the exact second in the video.
 - **Auto-Update:** If you save a new timestamp for a video you've already saved, it automatically updates to the most recent one.

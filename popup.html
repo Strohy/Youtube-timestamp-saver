@@ -7,10 +7,24 @@
   <body>
     <div class="container">
       <h1>YouTube Timestamp Saver</h1>
-      <button id="saveBtn" class="save-button">Save Timestamp</button>
-      <button id="viewBtn" class="view-button">View Saved Timestamps</button>
+      <button id="saveBtn" class="save-button">SAVE TIMESTAMP</button>
       <div id="timestampDisplay" class="message"></div>
-      <div id="timestampList" class="timestamp-list" style="display: none;"></div>
+      
+      <div class="category-management">
+        <input type="text" id="newCategoryInput" placeholder="New category name...">
+        <button id="addCategoryBtn">ADD</button>
+      </div>
+
+      <div id="categoryFilter" class="category-filter">
+        <!-- Categories will be injected here -->
+      </div>
+
+      <div id="timestampList" class="timestamp-list"></div>
+
+      <div class="export-controls">
+        <button id="exportCsvBtn" class="secondary-btn">Export CSV</button>
+        <button id="exportTxtBtn" class="secondary-btn">Export TXT</button>
+      </div>
     </div>
     <script src="popup.js"></script>
   </body>
