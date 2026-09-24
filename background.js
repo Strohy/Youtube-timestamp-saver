@@ -79,13 +79,28 @@ function checkAndSave(ts, tabId) {
         action: "showCategoryModal", 
         categories: categories 
       }, (response) => {
-        // If message fails or response is invalid, default to "Default"
-        if (chrome.runtime.lastError || !response || !response.success) {
-          console.warn("Category modal failed, using Default category.");
-          saveToStorage(ts, tabId, "Default");
-        } else {
-          saveToStorage(ts, tabId, response.category);
+        const messageError = chrome.runtime.lastError;
+
+        if (messageError) {
+          console.warn("Category modal failed:", messageError.message);
+          return;
         }
+
+        if (response?.cancelled) {
+          return;
+        }
+
+        // Only an explicit, valid selection should result in a save.
+        if (
+          !response?.success ||
+          typeof response.category !== "string" ||
+          !response.category.trim()
+        ) {
+          console.warn("Category modal returned an invalid response.");
+          return;
+        }
+
+        saveToStorage(ts, tabId, response.category);
       });
     }
   });

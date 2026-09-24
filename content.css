@@ -72,13 +72,19 @@
 }
 
 .yt-category-item {
+  display: block;
+  width: 100%;
   padding: 12px 16px;
+  background: transparent;
+  border: none;
   color: #f1f1f1;
   cursor: pointer;
   border-radius: 8px;
   margin-bottom: 4px;
   transition: background 0.2s;
+  font-family: inherit;
   font-size: 14px;
+  text-align: left;
 }
 
 .yt-category-item:hover {
@@ -89,6 +95,15 @@
   background: #3ea6ff;
   color: #0f0f0f;
   font-weight: 600;
+}
+
+.yt-category-item:focus-visible {
+  outline: none;
+}
+
+.yt-modal-btn:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .yt-modal-buttons {
