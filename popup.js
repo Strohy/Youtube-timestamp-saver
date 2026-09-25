@@ -5,8 +5,19 @@ const timestampList = document.getElementById("timestampList");
 const categoryFilter = document.getElementById("categoryFilter");
 const newCategoryInput = document.getElementById("newCategoryInput");
 const addCategoryBtn = document.getElementById("addCategoryBtn");
+const importCsvBtn = document.getElementById("importCsvBtn");
+const importCsvInput = document.getElementById("importCsvInput");
 
 let currentCategory = "All";
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 // Render initial state
 init();
@@ -114,9 +125,9 @@ async function renderCategories() {
         }
         
         return `
-          <div class="category-chip ${isActive ? 'active' : ''}" data-name="${cat}">
-            ${cat} <span class="cat-count">(${count})</span>
-            ${isDeletable ? `<span class="delete-cat-btn" data-name="${cat}">×</span>` : ''}
+          <div class="category-chip ${isActive ? 'active' : ''}" data-name="${escapeHtml(cat)}">
+            ${escapeHtml(cat)} <span class="cat-count">(${count})</span>
+            ${isDeletable ? `<span class="delete-cat-btn">×</span>` : ''}
           </div>
         `;
       }).join("");
@@ -133,7 +144,7 @@ async function renderCategories() {
       categoryFilter.querySelectorAll(".delete-cat-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          deleteCategory(btn.dataset.name);
+          deleteCategory(btn.closest(".category-chip").dataset.name);
         });
       });
       
@@ -203,7 +214,7 @@ function renderTimestamps() {
     }
 
     if (timestamps.length === 0) {
-      timestampList.innerHTML = `<p>No timestamps in ${currentCategory}.</p>`;
+      timestampList.innerHTML = `<p>No timestamps in ${escapeHtml(currentCategory)}.</p>`;
     } else {
       const sortedTimestamps = timestamps
         .slice()
@@ -218,13 +229,13 @@ function renderTimestamps() {
           const thumbUrl = ts.thumbnailUrl || (ts.videoId ? `https://img.youtube.com/vi/${ts.videoId}/mqdefault.jpg` : null);
 
           return `
-        <div class="timestamp-item" data-url="${timestampUrl}">
-          <button class="delete-btn" data-id="${ts.id}" title="Delete timestamp">×</button>
-          ${thumbUrl ? `<img src="${thumbUrl}" class="timestamp-thumbnail" alt="Video thumbnail">` : ""}
+        <div class="timestamp-item" data-url="${escapeHtml(timestampUrl)}">
+          <button class="delete-btn" data-id="${escapeHtml(ts.id)}" title="Delete timestamp">×</button>
+          ${thumbUrl ? `<img src="${escapeHtml(thumbUrl)}" class="timestamp-thumbnail" alt="Video thumbnail">` : ""}
           <div class="timestamp-info">
-            <div class="timestamp-title">${ts.title}</div>
-            <div class="timestamp-time">${ts.formattedTime} / ${ts.formattedDuration}</div>
-            <div class="timestamp-saved">${formatDate(ts.savedAt)}</div>
+            <div class="timestamp-title">${escapeHtml(ts.title)}</div>
+            <div class="timestamp-time">${escapeHtml(ts.formattedTime)} / ${escapeHtml(ts.formattedDuration)}</div>
+            <div class="timestamp-saved">${escapeHtml(formatDate(ts.savedAt))}</div>
           </div>
         </div>
       `;
@@ -272,6 +283,67 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     saveButton.disabled = false;
   } else {
     saveButton.disabled = true;
+  }
+});
+
+// Import functionality
+importCsvBtn.addEventListener("click", () => {
+  importCsvInput.value = "";
+  importCsvInput.click();
+});
+
+importCsvInput.addEventListener("change", async () => {
+  const file = importCsvInput.files?.[0];
+  if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    displayMessage("Please select a CSV file", "error");
+    return;
+  }
+
+  importCsvBtn.disabled = true;
+  importCsvBtn.textContent = "Importing...";
+
+  try {
+    const content = await file.text();
+    const storedData = await new Promise((resolve) => {
+      chrome.storage.local.get(["savedTimestamps", "categories"], resolve);
+    });
+    const result = TimestampCsvImport.prepareCsvImport(
+      content,
+      storedData.savedTimestamps || [],
+      storedData.categories || ["Default"],
+      new Date().toISOString(),
+    );
+
+    await new Promise((resolve, reject) => {
+      chrome.storage.local.set(
+        {
+          savedTimestamps: result.timestamps,
+          categories: result.categories,
+        },
+        () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve();
+          }
+        },
+      );
+    });
+
+    await renderCategories();
+    renderTimestamps();
+    displayMessage(
+      `${result.imported} imported, ${result.overwritten} overwritten, ${result.skipped} skipped`,
+      "success",
+    );
+  } catch (error) {
+    console.error("Import error:", error);
+    displayMessage(error.message || "Import failed", "error");
+  } finally {
+    importCsvBtn.disabled = false;
+    importCsvBtn.textContent = "Import CSV";
   }
 });
 

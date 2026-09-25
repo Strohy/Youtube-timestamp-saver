@@ -9,6 +9,7 @@ A lightweight Chrome extension to capture and save timestamps of YouTube videos 
 - **Visual Feedback:** A non-intrusive "Saved!" notification appears directly on the YouTube player.
 - **Manage History:** View your saved timestamps in a clean list, delete old entries, or click a link to jump back to the exact second in the video.
 - **Auto-Update:** If you save a new timestamp for a video you've already saved, it automatically updates to the most recent one.
+- **Import and Export:** Export timestamps as CSV or TXT, and restore CSV exports with categories and saved dates preserved.
 
 ## Getting Started
 
@@ -34,6 +35,7 @@ A lightweight Chrome extension to capture and save timestamps of YouTube videos 
    * **Method B:** Click the extension icon in your toolbar and click the **"Save Timestamp"** button.
 3. **View Your Saved Times:** Click the extension icon and select **"View Saved Timestamps"**.
 4. **Jump Back:** Click the video title or URL in the list to open the video at that exact saved second!
+5. **Import a CSV:** Click **Import CSV** and select a CSV previously exported by the extension. Existing videos are overwritten and missing categories are created automatically.
 
 ## Permissions
 - `activeTab`: To capture the timestamp of the video you are currently watching.

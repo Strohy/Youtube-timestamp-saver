@@ -319,10 +319,10 @@ h1 {
   margin-top: 40px;
 }
 
-/* Export Controls */
+/* Import/Export Controls */
 .export-controls {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #2a2a2a;
@@ -349,4 +349,10 @@ h1 {
 
 .secondary-btn:active {
   transform: translateY(0);
+}
+
+.secondary-btn:disabled {
+  color: #717171;
+  cursor: wait;
+  transform: none;
 }
