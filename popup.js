@@ -396,21 +396,7 @@ function exportData(format) {
       }).join("\n");
       downloadFile(content, `${fileName}.csv`, "text/csv");
     } else {
-      content = headers.join("\t") + "\n";
-      content += sortedData.map((ts, index) => {
-        return [
-          index + 1,
-          ts.title || "",
-          ts.videoId || "",
-          ts.url || "",
-          ts.currentTime || 0,
-          ts.formattedTime || "",
-          ts.duration || 0,
-          ts.formattedDuration || "",
-          ts.category || "Default",
-          ts.savedAt || ""
-        ].join("\t");
-      }).join("\n");
+      content = TimestampExport.formatTxtExport(sortedData, new Date());
       downloadFile(content, `${fileName}.txt`, "text/plain");
     }
   });
